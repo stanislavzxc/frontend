@@ -118,10 +118,11 @@ export default {
         worker: 'Antminer T21',
         miner: 'Antminer T21',
       }
+      localStorage.setItem('testmodedata', data);
       try {
         const response = await axios.post(url, data, { headers });
         console.log(response.data);
-        console.log('dfsadfsadfasdfasdfsadf');
+         
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -134,38 +135,22 @@ export default {
       this.step++;
     },
     make() {
-      this.$router.push({ name: "payment" });
+      this.isModalVisible = false;
+      this.fetchValue();
+      // const data = {
+      //   state: 'wait',
+      //   testmodetype: 'testmode',
+      //   cost: this.summa_zakaza || '0',
+      //   hashrate: this.hashrate || '0',
+      //   hosting: this.hosting || '0',
+      //   profit: this.profit || '0',
+      //   worker: 'Antminer T21',
+      //   miner: 'Antminer T21',
+      // }
+      // localStorage.setItem('testmodedata', data);
+      // this.$router.push({ name: "payment" });
     },
-    async createMiner() {
-  const url = 'http://209.46.123.31:5000/miners'; // URL для получения списка майнеров
-
-  const headers = {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  };
-
-  try {
-    const response = await axios.get(url, { headers });
-    console.log(response.data); // Выводим все данные для отладки
-
-    // Находим объект с именем 'Antminer T21'
-    const miner = response.data.find(item => item.name === 'Antminer T21');
     
-    if (miner) {
-      // Присваиваем переменные из найденного объекта
-      this.dohod = miner.income || 15.56;
-      this.hosting = miner.hosting || 12.13;
-      this.profit = miner.profit || 3.43;
-      this.hashrate = miner.hash_rate || 0;
-      this.cost = (this.profit * 3).toFixed(2) || '0.00';
-
-      console.log('Данные майнера:', miner);
-    } else {
-      console.error('Майнер с именем Antminer T21 не найден.');
-    }
-  } catch (error) {
-    console.error("Ошибка при получении данных:", error);
-  }
-}
 
   },
   
@@ -175,9 +160,7 @@ export default {
     if (storedContent) {
       this.content = storedContent; // Vue 2 реактивно заменит объект
     }
-    console.log(this.content, 'asdfasdfasdfasd')
-    this.createMiner();
-
+    
   },
 };
 </script>

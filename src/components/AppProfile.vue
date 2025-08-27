@@ -82,8 +82,9 @@ export default {
         this.wallet = response.data.user.wallet;
         this.mfa = response.data.user.mfa_enabled;
         if (response.data.user.image) {
-          this.image = response.data.user.image.url;
+          this.image = response.data.user.image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
         }
+        
       } catch (err) {
         console.log(err);
       } finally {

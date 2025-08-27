@@ -8,7 +8,7 @@ export default {
   },
   methods: {
     async fetchUsers() {
-      const url = `http://209.46.123.31:5000/news`;
+      const url = `https://totalminers.io/admin-api/news`;
       const headers = {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       };
@@ -27,62 +27,11 @@ export default {
     // Переход по URL
     window.location.href = url;
   },
-  async createMiner() {
-  const url = 'http://209.46.123.31:5000/miners/new';
-  const imagePath = require('@/assets/S21.webp') // Update with your actual image file name
-
-  try {
-    // Fetch the image file
-    const response = await fetch(imagePath);
-    if (!response.ok) {
-      throw new Error('Failed to fetch image');
-    }
-    const blob = await response.blob();
-    
-    // Convert the blob to base64
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    
-    reader.onload = async () => {
-      const base64Image = reader.result.split(',')[1]; // Get base64 string
-
-      const data = {
-        name: 'Antminer S21+',
-        description: 'Powerful miner',
-        category: '5',
-        hash_rate: '225',
-        energy_consumption: '3712',
-        price: '4014.00',
-        income: '18.43',
-        hosting: '12.47',
-        profit: '5.95',
-        discount_value: '0.0',
-        discount_count: '0',
-        priority: '1',
-        image: base64Image // Add the base64 image here
-      };
-
-      const token = localStorage.getItem('token');
-      const response = await axios.post(url, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      console.log('Miner created:', response.data);
-    };
-
-    reader.onerror = (error) => {
-      console.error('Error reading file:', error);
-    };
-  } catch (error) {
-    console.error('Error creating miner:', error);
-  }
-}
+  
 
   },
   mounted() {
-    //  this.createMiner();
+
      this.fetchUsers();
   },
 };

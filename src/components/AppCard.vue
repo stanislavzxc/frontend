@@ -3,7 +3,7 @@ import axios from "axios";
 
 export default {
   name: "AppCard",
-  components: { },
+  components: {},
   props: {
     id: String,
     image: String,
@@ -17,6 +17,11 @@ export default {
     payback: String,
     count: Number,
     cart: Boolean
+  },
+  computed: {
+    processedImage() {
+      return this.image.replace("https://209.46.123.31:9000", "https://totalminers.io");
+    }
   },
   methods: {
     goTry() {
@@ -55,61 +60,57 @@ export default {
         return Math.round(n * 100) / 100;
       }
     },
-  },
+  }
 };
 </script>
-<template>
-      <div class="card bx">
-        <img class="asic" v-if="image" :src="image"  alt="" />
-        <div class="wrap-scale">
-            <div
-              class="scale"
-              :style="'width: ' + (100 - payback_percent) + '%'"
-            ></div>
-          </div>
-          <div class="time_profit">
-            {{ $t("timeProfit") }}: {{ payback }} {{ $t("months") }}
-          </div>
-          <span class="name">{{ name }}</span>
-          <div class="info">
 
-              <div class="group">
-                <span class="group-name">{{ $t("hosting") }}:</span>
-                <span class="group-value"
-                  >${{ hosting }} / {{ $t("dayOne") }}</span
-                >
-              </div>
-              <div class="group">
-                <span class="group-name">{{ $t("dohod") }}:</span>
-                <span class="group-value"
-                  >${{ income }} / {{ $t("dayOne") }}</span
-                >
-              </div>
-              <div class="group">
-                <span class="group-name">{{ $t("rashod") }}:</span>
-                <span class="group-value"
-                  >{{ energy_consumption }} {{ $t("wt") }} /
-                  {{ $t("dayOne") }}</span
-                >
-              </div>
-              <!-- <div class="group">
-                <span class="group-name">{{ $t("income") }}:</span>
-                <span class="group-value"
-                  >${{ profit }} / {{ $t("dayOne") }}</span
-                >
-              </div> -->
-          </div>
-          <div class="actions">
-            <span class="price">${{ price }}</span>
-            <button class="btn">{{ $t('order') }}</button>
-          </div>
-          <div class="counter" v-if="cart">
-            <div class="minus" @click="minus(id, count)">-</div>
-            <div class="count">{{ count }}</div>
-            <div class="plus" @click="plus(id, count)">+</div>
-          </div>
+<template>
+  <div class="card bx">
+    <img class="asic" v-if="processedImage" :src="processedImage" alt="" />
+    <div class="wrap-scale">
+      <div
+        class="scale"
+        :style="'width: ' + (100 - payback_percent) + '%'"
+      ></div>
+    </div>
+    <div class="time_profit">
+      {{ $t("timeProfit") }}: {{ payback }} {{ $t("months") }}
+    </div>
+    <span class="name">{{ name }}</span>
+    <div class="info">
+      <div class="group">
+        <span class="group-name">{{ $t("hosting") }}:</span>
+        <span class="group-value"
+          >${{ hosting }} / {{ $t("dayOne") }}</span
+        >
       </div>
+      <div class="group">
+        <span class="group-name">{{ $t("dohod") }}:</span>
+        <span class="group-value"
+          >${{ income }} / {{ $t("dayOne") }}</span
+        >
+      </div>
+      <div class="group">
+        <span class="group-name">{{ $t("rashod") }}:</span>
+        <span class="group-value"
+          >{{ energy_consumption }} {{ $t("wt") }} /
+          {{ $t("dayOne") }}</span
+        >
+      </div>
+    </div>
+    <div class="actions">
+      <span class="price">${{ price }}</span>
+      <button class="btn">{{ $t('order') }}</button>
+    </div>
+    <div class="counter" v-if="cart">
+      <div class="minus" @click="minus(id, count)">-</div>
+      <div class="count">{{ count }}</div>
+      <div class="plus" @click="plus(id, count)">+</div>
+    </div>
+  </div>
 </template>
+
+
 <style scoped>
 .card {
   width: 100%;

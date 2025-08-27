@@ -1,3 +1,100 @@
+<template>
+  <LoadingSpinner v-if="isloading"/>
+  <section class="wrapper" v-else>
+    <div class="chat">
+      <header>
+        <button class="close" @click="close()">
+          <img src="../assets/chat-close.png" alt="Закрыть" />
+        </button>
+        <h2>{{ name }}</h2>
+        <p class="par">{{ date }}</p>
+      </header>
+
+      <div class="messages">
+        <div
+          class="wrap-message"
+          v-for="message in messages"
+          :key="message.id"
+          :class="{ 
+            user: message.sender === 'user', 
+            admin: message.sender === 'admin' 
+          }"
+        >
+          <div
+            class="group-message"
+            :class="{ 
+              userGroupMessage: message.sender === 'user',
+              adminGroupMessage: message.sender === 'admin'
+            }"
+          >
+            <div class="avatar" v-if="message.sender === 'admin'">
+              <img src="../assets/image.png" alt="Admin avatar" />
+            </div>
+
+            <div
+              class="message"
+              :class="{ 
+                userMessage: message.sender === 'user',
+                adminMessage: message.sender === 'admin'
+              }"
+            >
+              <template v-if="message.type === 'text'">
+                {{ message.text }}
+              </template>
+
+              <template v-else-if="message.type === 'file'">
+                <template v-if="message.url && message.url.startsWith('data:image/')">
+                  <img
+                    :src="message.url"
+                    alt="Uploaded Image"
+                    style="max-width: 100%; height: auto;"
+                    @click="downloadFile(message.url)"
+                  />
+                </template>
+                <template v-else>
+                  <div @click="downloadFile(message.url)">
+                    <img src="../assets/message-file.svg" alt="File Icon" />
+                    <div class="info">
+                      <span class="name">{{ message.name }}</span>
+                      <span class="size">{{ message.size }} bytes</span>
+                    </div>
+                  </div>
+                </template>
+              </template>
+            </div>
+
+            <div class="avatar" v-if="message.sender === 'user'">
+              <img src="../assets/image.png" alt="User  avatar" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group-send">
+        <div class="group-file">
+          <input
+            type="file"
+            id="file"
+            ref="fileInput"
+            @change="handleFileChange"
+          />
+          <label class="select-img" for="file">
+            <img class="photo" src="../assets/folder-add.svg" alt="Добавить файл" />
+          </label>
+        </div>
+        <input
+          type="text"
+          class="group-item-chat"
+          placeholder="начните писать"
+          v-model="newMessage"
+          @keyup.enter="sendMessage"
+        />
+        <img class="send" src="../assets/send.svg" alt="Отправить" @click="sendMessage" />
+      </div>
+    </div>
+  </section>
+</template>
+
 <script>
 import axios from 'axios';
 import LoadingSpinner from './LoadingSpinner.vue';
@@ -13,14 +110,14 @@ export default {
       client2: "",
       createdAt: "Загрузка...",
       messages: [],
-      newMessage: "", // Новое текстовое сообщение
+      newMessage: "",
       name: this.$route.query.name,
       date: this.$route.query.date,
       id: this.$route.query.id,
-      isloading:false,
+      isloading: false,
     };
   },
-  components:{
+  components: {
     LoadingSpinner
   },
   methods: {
@@ -62,7 +159,6 @@ export default {
         "Content-Type": "application/json"
       };
 
-      // Отправляем с префиксом для распознавания
       const data = {
         ticket_id: this.id,
         text: `[file:${filename}]${base64data}`
@@ -71,27 +167,13 @@ export default {
       try {
         const response = await axios.post(url, data, { headers });
         console.log('Файл в base64 успешно отправлен:', response.data);
-
-        // Добавляем в локальный массив сообщений
-        this.messages.push({
-          id: Date.now(),
-          sender: 'user',
-          text: '',
-          type: 'file',
-          name: filename,
-          size: '',
-          url: base64data,
-        });
+        this.getMessages(); // Обновляем сообщения после отправки
       } catch (error) {
-        if (error.response) {
-          console.error('Ошибка:', error.response.data.error);
-        } else {
-          console.error('Ошибка при отправке base64 сообщения:', error);
-        }
+        console.error('Ошибка при отправке файла:', error);
       }
     },
     async sendMessage() {
-      if (!this.newMessage) {
+      if (!this.newMessage.trim()) {
         alert("Введите сообщение!");
         return;
       }
@@ -103,29 +185,17 @@ export default {
       };
       const data = {
         ticket_id: this.id,
-        text: this.newMessage,
+        text: this.newMessage.trim(),
       };
 
       try {
         const response = await axios.post(url, data, { headers });
         console.log('Сообщение успешно отправлено:', response.data);
-
-        this.messages.push({
-          id: Date.now(),
-          sender: 'user',
-          text: this.newMessage,
-          type: 'text',
-          name: '',
-          size: '',
-        });
-
         this.newMessage = '';
+        this.getMessages(); // Обновляем сообщения после отправки
       } catch (error) {
-        if (error.response) {
-          console.error('Ошибка:', error.response.data.error);
-        } else {
-          console.error('Ошибка при отправке сообщения:', error);
-        }
+        console.error('Ошибка при отправке сообщения:', error);
+        alert('Ошибка при отправке сообщения');
       }
     },
     async getMessages() {
@@ -141,54 +211,59 @@ export default {
 
       try {
         const response = await axios.post(url, data, { headers });
+        console.log('Получены сообщения:', response.data);
+        
         this.messages = [];
+        
+        if (response.data.messages && Array.isArray(response.data.messages)) {
+          for (let i = 0; i < response.data.messages.length; i++) {
+            const msgData = response.data.messages[i];
+            const content = msgData.content;
+            const sender = msgData.sender === 'admin' ? 'admin' : 'user';
 
-        for (let i = response.data.messages.length - 1; i >= 0; i--) {
-          const msg = response.data.messages[i].content;
-
-          if (msg.startsWith('[file:')) {
-            // Парсим имя файла и base64
-            const match = msg.match(/^\[file:(.+?)\](.+)$/);
-            if (match) {
-              this.messages.push({
-                id: Date.now() + i,
-                sender: 'user',
-                text: '',
-                type: 'file',
-                name: match[1],
-                size: '',
-                url: match[2],
-              });
-            } else {
-              this.messages.push({
-                id: Date.now() + i,
-                sender: 'user',
-                text: msg,
-                type: 'text',
-                name: '',
-                size: '',
-              });
+            if (content && typeof content === 'string') {
+              if (content.startsWith('[file:')) {
+                const match = content.match(/^\[file:(.+?)\](.+)$/);
+                if (match) {
+                  this.messages.push({
+                    id: msgData.id || Date.now() + i,
+                    sender: sender,
+                    text: '',
+                    type: 'file',
+                    name: match[1],
+                    size: '',
+                    url: match[2],
+                  });
+                }
+              } else {
+                this.messages.push({
+                  id: msgData.id || Date.now() + i,
+                  sender: sender,
+                  text: content,
+                  type: 'text',
+                  name: '',
+                  size: '',
+                });
+              }
             }
-          } else {
-            this.messages.push({
-              id: Date.now() + i,
-              sender: 'user',
-              text: msg,
-              type: 'text',
-              name: '',
-              size: '',
-            });
           }
+          this.messages.reverse();
         }
       } catch (error) {
-        if (error.response) {
-          console.error('Ошибка:', error.response.data.error);
-        } else {
-          console.error('Ошибка при получении сообщений:', error);
-        }
-      }finally{
-          this.isloading = false;
-        }
+        console.error('Ошибка при получении сообщений:', error);
+      } finally {
+        this.isloading = false;
+      }
+    },
+    downloadFile(url) {
+      const modifiedUrl = url.replace("https://209.46.123.31:9000", "https://totalminers.io");
+
+      const link = document.createElement('a');
+      link.href = modifiedUrl;
+      link.download = ''; // Укажите имя файла, если необходимо
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     },
   },
   mounted() {
@@ -200,91 +275,119 @@ export default {
 };
 </script>
 
-<template>
-  <LoadingSpinner v-if="isloading"/>
-  <section class="wrapper" v-else>
-    <div class="chat">
-      <header>
-        <button class="close" @click="close()">
-          <img src="../assets/chat-close.png" alt="Закрыть" />
-        </button>
-        <h2>{{ name }}</h2>
-        <p class="par">{{ date }}</p>
-      </header>
-
-      <div class="messages">
-        <div
-          class="wrap-message"
-          v-for="message in messages"
-          :key="message.id"
-          :class="{ user: message.sender == 'user' }"
-        >
-          <div
-            class="group-message"
-            :class="{ userGroupMessage: message.sender == 'user' }"
-          >
-            <div
-              class="message"
-              v-if="message.type == 'text'"
-              :class="{ userMessage: message.sender == 'user' }"
-            >
-              {{ message.text }}
-            </div>
-
-            <div
-              class="message doc"
-              v-if="message.type == 'file'"
-              :key="message.id"
-              :class="{ userMessage: message.sender == 'user' }"
-            >
-              <template v-if="message.url.startsWith('data:image/')">
-                <img
-                  :src="message.url"
-                  alt="Uploaded Image"
-                  style="max-width: 100%; height: auto;"
-                />
-              </template>
-              <template v-else>
-                <img src="../assets/message-file.svg" alt="File Icon" />
-                <div class="info">
-                  <span class="name">{{ message.name }}</span>
-                  <span class="size">{{ message.size }} bytes</span>
-                </div>
-              </template>
-            </div>
-
-            <div class="avatar" v-if="message.sender == 'user'">
-              <img src="../assets/image.png" alt="User avatar" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="group-send">
-        <div class="group-file">
-          <input
-            type="file"
-            id="file"
-            ref="fileInput"
-            @change="handleFileChange"
-          />
-          <label class="select-img" for="file">
-            <img class="photo" src="../assets/folder-add.svg" alt="Добавить файл" />
-          </label>
-        </div>
-        <input
-          type="text"
-          class="group-item-chat"
-          placeholder="начните писать"
-          v-model="newMessage"
-          @keyup.enter="sendMessage"
-        />
-        <img class="send" src="../assets/send.svg" alt="Отправить" @click="sendMessage" />
-      </div>
-    </div>
-  </section>
-</template>
 <style scoped>
+/* Базовые стили для контейнера сообщений */
+.messages {
+  width: 100%;
+  height: 80vh;
+  padding: 20px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+/* Контейнер для каждого сообщения */
+.wrap-message {
+  width: 100%;
+  display: flex;
+  margin-bottom: 15px;
+}
+
+/* Сообщения админа - выравнивание по левому краю */
+.admin-message {
+  justify-content: flex-start;
+}
+
+/* Сообщения пользователя - выравнивание по правому краю */
+.user-message {
+  justify-content: flex-end;
+}
+
+/* Контейнер содержимого сообщения */
+.message-content {
+  max-width: 70%;
+}
+
+/* Контейнер для сообщения админа */
+.admin-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Контейнер для сообщения пользователя */
+.user-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-direction: row-reverse;
+}
+
+/* Стили для аватара */
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Пузырьки сообщений */
+.message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+/* Сообщение админа (слева) */
+.admin-bubble {
+  background-color: #e6eefe;
+  border-radius: 12px 12px 12px 4px;
+  border: 1px solid #f1f2f4;
+}
+
+/* Сообщение пользователя (справа) */
+.user-bubble {
+  background-color: #fff;
+  border-radius: 12px 12px 4px 12px;
+  border: 1px solid #f1f2f4;
+}
+
+/* Убираем скроллбар */
+.messages::-webkit-scrollbar {
+  width: 0;
+}
+
+.admin {
+  justify-content: flex-start;
+}
+
+.adminGroupMessage {
+  flex-direction: row;
+  padding-left: 0;
+  padding-right: 38px;
+  justify-content: flex-start;
+  flex-direction: row;
+}
+
+.adminMessage {
+  background-color: #e6eefe;
+  border-radius: 12px 12px 12px 4px;
+}
+
+.userMessage {
+  background-color: #fff;
+  border-radius: 12px 12px 4px 12px;
+}
 .wrapper {
   padding: 20px;
   display: flex;

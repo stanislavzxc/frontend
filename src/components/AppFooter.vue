@@ -21,6 +21,7 @@ export default {
       avatar: "",
       countries: ["RU", "EN", "HE"],
       active: false,
+      links:{}
     };
   },
   props: {
@@ -108,6 +109,20 @@ export default {
         console.log(err);
       }
     },
+    async load_info() {
+      try {
+        this.id = this.$route.query.id;
+        let response = await axios.get(`/settings/info`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        console.log("zxc", response);
+        this.links = response.data[0];
+      } catch (err) {
+        console.log(err);
+      }
+    },
   },
   mounted() {
     this.verify_token();
@@ -117,6 +132,7 @@ export default {
       this.id = localStorage.getItem("id") || null;
     });
     this.load_avatar();
+    this.load_info();
   },
 };
 </script>
@@ -133,14 +149,21 @@ export default {
       <span class="text">Totalminer 2024 All Rights Reserved</span>
       <div class="contacts">
         <img src="../assets/insta.png" alt="" />
-        <span>Instagram</span>
+        <span>
+        <a :href="links.insta">Instagram</a></span>
         <img src="../assets/tiktok.png" alt="" />
-        <span>TikTok</span>
+        <span>
+          <a :href="links.tiktok">TikTok</a>
+        </span>
         <img src="../assets/WhatsApp.svg" alt="" />
-        <span>WhatsApp</span>
+        <span>
+          <a :href="links.whatsapp">WhatsApp</a>
+        </span>
         <img src="../assets/Telegram.svg" alt="" />
-        <span>Telegram</span>
-        <span class="number">+972 50-8981614</span>
+        <span>
+          <a :href="links.telegram">Telegram</a>
+        </span>
+        <span class="number">{{links.number}}</span>
       </div>
       <div class="group-span">
         <span class="text">{{ $t("policy") }}</span>

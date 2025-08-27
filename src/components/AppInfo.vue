@@ -17,7 +17,7 @@ export default {
   try {
     this.isLoading = true;
     const id = this.$route.query.id;
-    let response = await axios.get(`http://209.46.123.31:5000/news`, {
+    let response = await axios.get(`https://totalminers.io/admin-api/news`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -74,8 +74,14 @@ export default {
     margin:10px 0px 10px 0px;
   }
 img{
-  width:100%;
+  width: 50%;
   height: auto;
+  margin: auto;
+}
+@media(max-width: 450px){
+  img{
+  width: 80%;
+}
 }
 .cost{
   display: flex;

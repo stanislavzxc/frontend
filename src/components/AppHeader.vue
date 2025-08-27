@@ -87,7 +87,8 @@ export default {
           app.style.direction = "ltr";
         }
         this.active_billings = response.data.user.active_billings;
-        this.avatar = response.data.user.image.url;
+        this.avatar = response.data.user.image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
+
       } catch (err) {
         console.log(err);
       }

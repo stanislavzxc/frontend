@@ -175,7 +175,7 @@ export default {
     async fetchUsers() {
       this.isLoading = true;
 
-      const url = `http://209.46.123.31:5000/news`;
+      const url = `https://totalminers.io/admin-api/news`;
       const headers = {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       };
@@ -336,7 +336,8 @@ export default {
 }
 
 .asic {
-  width: 75%;
+  width: 70% !important;
+  height: 70% !important;
 }
 
 .info {

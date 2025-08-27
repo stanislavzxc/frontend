@@ -13,7 +13,7 @@ export default {
   },
   methods: {
     async fetchUsers() {
-      const url = `http://209.46.123.31:5000/users/get/top20`;
+      const url = `https://totalminers.io/admin-api/users/get/top20`;
       const headers = {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       };

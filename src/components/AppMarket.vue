@@ -52,19 +52,27 @@ export default {
     },
 
     async load_info() {
-      try {
-        this.isLoading = true;
-        let response = await axios.get(
-          `/miners/get/all?category_id=${this.category_id}`
-        );
-        console.log(response);
-        this.cards = response.data.miners_items;
-      } catch (err) {
-        console.log(err);
-      } finally {
-        this.isLoading = false;
-      }
-    },
+  console.log('XZCXZCZXCZXXZC')
+  try {
+    this.isLoading = true;
+    let response = await axios.get(
+      `/miners/get/all?category_id=${this.category_id}`
+    );
+    console.log(response);
+    this.cards = response.data.miners_items;
+
+    // Исправление здесь
+    for (let i = 0; i < this.cards.length; i++) {
+      this.cards[i].image.url = this.cards[i].image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
+    }
+    console.log(this.cards, 'zxczxczxczxczxc')
+  } catch (err) {
+    console.log(err);
+  } finally {
+    this.isLoading = false;
+  }
+},
+
 
     open(id) {
       this.$router.push({ name: "product", query: { id: id } });
@@ -74,27 +82,7 @@ export default {
       this.category_id = id;
       this.load_info();
     },
-     async createMinerItemCategory() {
-   const url = 'http://209.46.123.31:5000/miners_items_categories/create/new';
-   const headers = {
-     Authorization: `Bearer ${localStorage.getItem("token")}`,
-     "Content-Type": "application/json",
-   };
-   const data = {
-   name: 'Основные',
-   description: 'Главные',
-   priority: 1,          // число, а не строка
-   is_hidden: false,     // булево значение
- };
-   try {
-     const response = await axios.post(url, data, { headers });
-     console.log("Category created successfully:", response.data);
-     // Обработка успешного ответа
-   } catch (error) {
-     console.error("Error creating category:", error);
-     // Обработка ошибки
-   }
- }
+
   },
   mounted() {
     document.body.style.overflow = "auto";

@@ -39,6 +39,12 @@ export default {
         let response = await axios.get(`/miners/get/all`);
         console.log(response);
         this.cards = response.data.miners_items;
+        for (let i = 0; i < this.cards.length; i++) {
+        // Исправление здесь
+        if (this.cards[i].image && this.cards[i].image.url) {
+          this.cards[i].image.url = this.cards[i].image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
+        }
+      }
       } catch (err) {
         console.log(err);
       }

@@ -93,6 +93,12 @@ export default {
             },
           });
           this.cards = response.data.data;
+          for (let i = 0; i < this.cards.length; i++) {
+        // Исправление здесь
+        if (this.cards[i].image && this.cards[i].image.url) {
+          this.cards[i].image.url = this.cards[i].image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
+        }
+      }
           this.summary = response.data.summary;
           console.log(response.data);
           console.log(this.cards);

@@ -29,6 +29,7 @@ export default {
         });
         console.log(response);
         this.card = response.data.miner_item;
+        this.card.image.url = this.card.image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
       } catch (err) {
         console.log(err);
       } finally {

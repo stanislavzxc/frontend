@@ -19,6 +19,7 @@ export default {
       currentColor: null,
       cost: "",
       istestmode: null,
+      token:'',
       content: {
         data: [], // бизнесы
         miners_items: [], // майнеры
@@ -124,6 +125,21 @@ export default {
         console.error("Error fetching business data:", error);
       }
     },
+    async getIsTestmode() {
+      this.isloading = true;
+      const url = `/users/${this.id}`;
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
+      try {
+        const response = await axios.get(url, { headers });
+        this.istestmode = response.data.user.testmode;
+        console.log(response.data, 'asdf');
+        this.generateCardsFromBusiness();
+      } catch (error) {
+        console.error("Error fetching business data:", error);
+      }
+    },
     async minerData() {
       const url = "/miners/get/all";
       const headers = {
@@ -176,17 +192,18 @@ export default {
   },
   async mounted() {
     this.id = localStorage.getItem("id") || null;
-
+    await this.getIsTestmode();
     await this.fetchUsers();
     await this.businessData();
     await this.minerData();
+    this.token = localStorage.getItem('token')
   },
 };
 </script>
 
 <template>
   <LoadingSpinner v-if="isLoading"/>
-  <div id="modalwindow" v-if="isModalVisible && !isLoading" class="modal-overlay">
+  <div id="modalwindow" v-if="isModalVisible && !isLoading && token"  class="modal-overlay">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="titletext">{{ $t("businessreg") }}</h1>
@@ -205,7 +222,7 @@ export default {
     </div>
   </div>
   <div class="wrapper">
-    <AppTestMode v-if="this.$route.path === '/ReadyBusiness'"/>
+    <AppTestMode v-if="this.$route.path === '/ReadyBusiness' && !istestmode"/>
     <h2>{{ $t("readyBusiness") }}</h2>
     <div class="cards">
       <div
