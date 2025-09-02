@@ -39,6 +39,7 @@ export default {
       mfa: false,
       isLoading: false,
       otp2: "",
+      image_id: null,
     };
   },
   computed: {
@@ -83,6 +84,7 @@ export default {
         this.mfa = response.data.user.mfa_enabled;
         if (response.data.user.image) {
           this.image = response.data.user.image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
+          this.image_id = response.data.user.image.id;
         }
         
       } catch (err) {
@@ -107,6 +109,7 @@ export default {
             address: this.address,
             inn: this.inn,
             telegram: this.telegram,
+            image_id: this.image_id || 0,
           },
           {
             headers: {
@@ -115,7 +118,7 @@ export default {
           }
         );
 
-        this.message = response.data.message;
+        this.message = response.data.status;
         if (this.message == "ok") {
           this.message = this.$t("success");
         } else {
