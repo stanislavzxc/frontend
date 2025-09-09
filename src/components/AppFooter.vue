@@ -150,18 +150,18 @@ export default {
       <div class="contacts">
         <img src="../assets/insta.png" alt="" />
         <span>
-        <a :href="links.insta">Instagram</a></span>
+        <a :href="links.insta" target="_blank">Instagram</a></span>
         <img src="../assets/tiktok.png" alt="" />
         <span>
-          <a :href="links.tiktok">TikTok</a>
+          <a :href="links.tiktok" target="_blank">TikTok</a>
         </span>
         <img src="../assets/WhatsApp.svg" alt="" />
         <span>
-          <a :href="links.whatsapp">WhatsApp</a>
+          <a :href="links.whatsapp" target="_blank">WhatsApp</a>
         </span>
         <img src="../assets/Telegram.svg" alt="" />
         <span>
-          <a :href="links.telegram">Telegram</a>
+          <a :href="links.telegram" target="_blank">Telegram</a>
         </span>
         <span class="number">{{links.number}}</span>
       </div>

@@ -137,33 +137,7 @@ export default {
         console.error("Error fetching users:", error);
       }
     },
-    async updateValue() {
-  const url = `https://totalminers.io/admin-api/perevod/update`;
-  const headers = {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-    'Content-Type': 'application/json', // Указываем тип контента для JSON
-  };
-
-  // Собираем данные из свойств компонента (предполагая, что они уже установлены)
-  const data = {
-    bic: 'this.bic',
-    nds: 'this.nds',
-    recepient: 'this.recepient',
-    adress: 'this.addres', // Обратите внимание: в оригинале 'addres' (опечатка?), но в Python коде 'adress'
-    iban: 'this.iban',
-    bank: 'this.bank',
-    code: 'this.number',
-  };
-
-  try {
-    const response = await axios.post(url, data, { headers });
-    console.log('Update successful:', response.data);
-    // Здесь можно добавить логику после успешного обновления, например, показать уведомление
-  } catch (error) {
-    console.error("Error updating data:", error);
-    // Здесь можно добавить обработку ошибок, например, показать сообщение пользователю
-  }
-},
+    
 
     closeModal() {
       this.$emit('update:isModalVisible', false);
@@ -172,7 +146,9 @@ export default {
     next() {
       this.step++;
     },
-    make() {
+    async make() {
+      console.log('make')
+      await this.$emit('buy');
       this.$router.push({ name: "mypayments" });
     },
   },

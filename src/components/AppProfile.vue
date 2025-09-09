@@ -86,7 +86,10 @@ export default {
           this.image = response.data.user.image.url.replace("https://209.46.123.31:9000", "https://totalminers.io");
           this.image_id = response.data.user.image.id;
         }
-        
+        localStorage.setItem('email', this.email);
+        localStorage.setItem('firstname', this.firstname);
+        localStorage.setItem('lastname', this.lastname);
+        localStorage.setItem('userid_ox',response.data.user.id);
       } catch (err) {
         console.log(err);
       } finally {

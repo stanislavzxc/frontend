@@ -10,7 +10,7 @@ export default {
   data() {
     return {
       cards: [],
-      summary: 0,
+      summary: parseFloat(this.$route.query.cost) || 0,
       showModalBankPay: false,
       showModalPerevod: false,
       showModalOx: false,
@@ -48,8 +48,14 @@ export default {
       status: "",
       message: "",
       profit: "1.00",
+      testmode: '0',
+      hashrate: '0',
+      hosting: '0',
+      profitestmode: '0',
+       
     };
   },
+ 
   methods: {
     goTry() {
       this.$emit("updateGoTry", true);
@@ -100,6 +106,7 @@ export default {
         }
       }
           this.summary = response.data.summary;
+          localStorage.setItem('total', this.summary);
           console.log(response.data);
           console.log(this.cards);
         }
@@ -146,12 +153,114 @@ export default {
         console.log(err);
       }
     },
+    async goBuyTestMode() {
+      console.log('make!!!')
+      try {
+        let response = await axios.post(
+          `/market/cart/buy`,
+          {
+            payment_type: this.methodPay
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        this.status = response.status;
+        console.log(response);
+        if (this.status == 200) {
+          await this.fetchminer();
+          await this.fetchValue();
+          this.message = this.$t("success");
+          let id = response.data.billing_id;
+          setTimeout(() => {
+            this.message = "";
+            this.cards = [];
+            this.summary = 0;
+            if (id) {
+              this.$router.push({ name: "payment", query: { id: id } });
+            }
+          }, 2000);
+        } else {
+          this.message = "Ошибка";
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    },
+    async fetchValue() {
+      
+      const url = `users/testmode`;
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json" 
+      };
+
+      const data = {
+        state: 'wait',
+        testmodetype: 'testmode',
+        cost: this.summary.toString() || '25.8',
+        hashrate: this.hashrate.toString() || '0',
+        hosting: this.hosting.toString() || '0',
+        profit: this.profitestmode.toString() || '0',
+        worker: 'Antminer T21',
+        miner: 'Antminer T21',
+      }
+      localStorage.setItem('testmodedata', data);
+      try {
+        const response = await axios.post(url, data, { headers });
+        console.log(response.data, '3124567890-87654321456789p');
+         
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
+    async fetchminer() {
+  const url = `/miners/get/all`;
+  const headers = {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  };
+  try {
+    const response = await axios.get(url, { headers });
+    console.log(response.data, '213456789');
+    
+    // Поиск майнера с именем "Antminer T21"
+    const miner = response.data.miners_items.find((m) => m.name === "Antminer T21");
+
+    if (miner) {
+      this.profitestmode = miner.profit;
+      this.dohod = miner.income;
+      this.hosting = miner.hosting;
+      this.cost = Math.round((parseFloat(this.profit) * 3) * 1000) / 1000;
+
+    } else {
+      console.log('Майнер с именем "Antminer T21" не найден');
+    }
+  } catch (error) {
+    console.error("Error fetching miners:", error);
+  }
+},
+    router(){
+      console.log('make!')
+        if(this.testmode === true){
+          this.goBuyTestMode(); 
+        } else{
+          this.goBuy();
+        }
+      },
     modal() {
+      if(this.summary == 25.8){
+        this.testmode = true;
+      }
+      if(this.summary == 0){
+        alert("корзина пуста!")
+        return
+      }
   if (this.methodPay === 'visa') {
     this.showModalBankPay = true;
   } else if (this.methodPay === 'rus_card') {
     this.showModalPerevod = true;
-    this.goBuy();
   }else if (this.methodPay === '0xprocessing'){
     this.showModalOx = true;
   }
@@ -163,6 +272,7 @@ export default {
   },
   mounted() {
     document.body.style.overflow = "auto";
+    if(this.summary != 0) return
     this.load_info();
   },
 };
@@ -171,9 +281,9 @@ export default {
   <LoadingSpinner v-if="isLoading" />
   
   <div class="wrapper" v-else>
-    <ModalBankPay v-model:isModalVisible="showModalBankPay" :price="summary"/>
-    <ModalPerevod v-model:isModalVisible="showModalPerevod" :price="summary"/>
-    <ModalOx v-model:isModalVisible="showModalOx" :price="summary"/>
+    <ModalBankPay v-model:isModalVisible="showModalBankPay" :price="summary" :istestmode="testmode" @buy="router()"/>
+    <ModalPerevod v-model:isModalVisible="showModalPerevod" :price="summary" :istestmode="testmode" @buy="router()"/>
+    <ModalOx v-model:isModalVisible="showModalOx" :price="summary" :istestmode="testmode" @buy="router()"/>
     <h2>{{ $t("cart") }}</h2>
     <div class="cards">
       <div class="card bx" v-for="card in cards" :key="card.id">

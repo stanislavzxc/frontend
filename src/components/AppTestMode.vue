@@ -1,5 +1,5 @@
 <template>
-  <div id="modalwindow" v-if="isModalVisible && content.test === true" class="modal-overlay">
+  <div id="modalwindow" v-if="isModalVisible " class="modal-overlay">
     <div class="modal-content">
       <h4 class="textmain">{{ $t("test") }}</h4>
       <h5 class="titletext" v-if="step == 1">{{ $t("testmodal1") }}</h5>
@@ -79,7 +79,7 @@ export default {
       profit:'1',
       hashrate:'',
       value: null,
-      cost: "",
+      cost: "1",
       summa_zakaza: "25.8",
       show: true,
       isModalVisible: false,
@@ -102,6 +102,7 @@ export default {
   },
   methods: {
     async fetchValue() {
+      
       const url = `users/testmode`;
       const headers = {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -127,6 +128,32 @@ export default {
         console.error("Error fetching users:", error);
       }
     },
+    async fetchminer() {
+  const url = `/miners/get/all`;
+  const headers = {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  };
+  try {
+    const response = await axios.get(url, { headers });
+    console.log(response.data, '213456789');
+    
+    // Поиск майнера с именем "Antminer T21"
+    const miner = response.data.miners_items.find((m) => m.name === "Antminer T21");
+
+    if (miner) {
+      this.profit = miner.profit;
+      this.dohod = miner.income;
+      this.hosting = miner.hosting;
+      this.cost = Math.round((parseFloat(this.profit) * 3) * 1000) / 1000;
+
+    } else {
+      console.log('Майнер с именем "Antminer T21" не найден');
+    }
+  } catch (error) {
+    console.error("Error fetching miners:", error);
+  }
+},
+
     closeModal() {
       this.isModalVisible = false;
       this.step = 1;
@@ -134,32 +161,38 @@ export default {
     next() {
       this.step++;
     },
-    make() {
+    async make() {
       this.isModalVisible = false;
-      this.fetchValue();
-      // const data = {
-      //   state: 'wait',
-      //   testmodetype: 'testmode',
-      //   cost: this.summa_zakaza || '0',
-      //   hashrate: this.hashrate || '0',
-      //   hosting: this.hosting || '0',
-      //   profit: this.profit || '0',
-      //   worker: 'Antminer T21',
-      //   miner: 'Antminer T21',
-      // }
-      // localStorage.setItem('testmodedata', data);
-      // this.$router.push({ name: "payment" });
+      // await this.fetchValue();
+       const data = {
+         state: 'wait',
+         testmodetype: 'testmode',
+         cost: this.summa_zakaza || '0',
+         hashrate: this.hashrate || '0',
+         hosting: this.hosting || '0',
+         profit: this.profit || '0',
+         worker: 'Antminer T21',
+         miner: 'Antminer T21',
+       }
+       localStorage.setItem('testmodedata', data);
+        
+       this.$router.push({ name: "cart", query: { cost: 25.8 } });
+
     },
     
 
   },
   
 
-  mounted() {
+  async mounted() {
+   await this.fetchminer();
+    
+    console.log('this.fetchminer();')
   const storedContent = JSON.parse(localStorage.getItem('content'));
     if (storedContent) {
       this.content = storedContent; // Vue 2 реактивно заменит объект
     }
+
     
   },
 };

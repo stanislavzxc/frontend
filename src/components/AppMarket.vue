@@ -52,7 +52,6 @@ export default {
     },
 
     async load_info() {
-  console.log('XZCXZCZXCZXXZC')
   try {
     this.isLoading = true;
     let response = await axios.get(

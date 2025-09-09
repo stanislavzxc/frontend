@@ -222,7 +222,7 @@ export default {
     </div>
   </div>
   <div class="wrapper">
-    <AppTestMode v-if="this.$route.path === '/ReadyBusiness' && !istestmode"/>
+    <AppTestMode v-if="this.$route.path === '/ReadyBusiness' && istestmode"/>
     <h2>{{ $t("readyBusiness") }}</h2>
     <div class="cards">
       <div

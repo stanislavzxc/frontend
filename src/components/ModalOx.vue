@@ -1,109 +1,189 @@
 <template>
-    <div id="modalwindow" v-if="isModalVisible" class="modal-overlay">
-      <div class="modal-content" >
-        <button @click="closeModal()" class="modalclose"><span><span>&lt;</span> {{ $t('back') }}</span></button>
+  <!-- Ваш шаблон без изменений -->
+  <div id="modalwindow" v-if="isModalVisible" class="modal-overlay">
+    <div class="modal-content">
+      <button @click="closeModal()" class="modalclose"><span><span>&lt;</span> {{ $t('back') }}</span></button>
 
-        <h4 class="textmain">{{ $t("oxtitle") }}</h4>
-        <p>{{ $t('oxtitle1') }}</p>
-        <div class="info">
+      <h4 class="textmain">{{ $t("oxtitle") }}</h4>
+      <p>{{ $t('oxtitle1') }}</p>
+      <div class="info">
         <p class="txt">1. {{ $t('oxtitle2') }}</p>
         <p class="txt">2. {{ $t('oxtitle3') }}</p>
         <p class="txt">3. {{ $t('oxtitle4') }}</p>
         <div class="clock">
-            <img src="../assets/time.png" alt="">
-            00:{{ time }}
-          </div>
-          </div>
-          
-        <button class="two" @click="make()">
-            {{ $t("gonow") }}
-          </button>
+          <img src="../assets/time.png" alt="">
+          00:{{ time }}
+        </div>
       </div>
+      
+      <button class="two" @click="fetchValue()">
+        {{ $t("gonow") }}
+      </button>
     </div>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
-    data() {
-      return {
-        show: true,
-        time:30,
-      };
-    },
-   props: {
-      isModalVisible: {
-        type: Boolean,
-        default: false,
-      },
-      price: {
-        type: Number,
-        default: 0,
-      },
-    },
-    computed: {
-      stepImage() {
-        try {
-          if (this.step !== 1) {
-            return require(`../assets/test${this.step}.png`);
-          } else {
-            return require(`../assets/test.png`);
-          }
-        } catch (e) {
-          return require("../assets/test.png");
-        }
-      },
-    },
-    methods: {
-      async fetchValue() {
-        const url = `/testmode/`;
-        const headers = {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        };
-  
-        try {
-          const response = await axios.get(url, { headers });
-          this.value = response.data.value;
-          console.log(response);
-        } catch (error) {
-          console.error("Error fetching users:", error);
-        }
-      },
-      closeModal() {
-        this.$emit('update:isModalVisible', false);
-        if (this.intervalId) {
-    clearInterval(this.intervalId);
-    this.intervalId = null;
-  }
+  </div>
+</template>
 
-  // (Опционально) сбросить таймер
-  this.time = 30;
-      },
-      next() {
-        this.step++;
-      },
-      make() {
-        this.ticking();
+<script>
+import axios from "axios";
+import qs from 'qs';
 
-      },
-      ticking() {
-  this.intervalId = setInterval(() => {
-    if (this.time > 0) {
-      this.time--;
-    } else {
-      clearInterval(this.intervalId);
+export default {
+  data() {
+    return {
+      show: true,
+      time: 30,
+      email: "",
+      FirstName: "",  // Изменено с name
+      LastName: "",   // Изменено с lastname
+      currency: "BTC", // Добавлено (захардкодено; замените если нужно динамическое)
+      id: 1,
+      merchant: '',
+    };
+  },
+  props: {
+    isModalVisible: {
+      type: Boolean,
+      default: false,
+    },
+    price: {
+      type: Number,
+      default: 0,
+    },
+  },
+  computed: {
+    // Ваш computed без изменений
+    stepImage() {
+      try {
+        if (this.step !== 1) {
+          return require(`../assets/test${this.step}.png`);
+        } else {
+          return require(`../assets/test.png`);
+        }
+      } catch (e) {
+        return require("../assets/test.png");
+      }
+    },
+  },
+  methods: {
+    async fetchValue() {
+  try {
+    await this.get_merchant();
+    await this.load_info();
+
+    console.log('Инициируем платёж...');
+    
+    if (!this.email || !this.FirstName || !this.LastName || !this.id) {
+      await this.load_info();
     }
-  }, 1000);
-}
+    
+    if (!this.email || !this.FirstName || !this.LastName || !this.id || !this.currency) {
+      throw new Error('Отсутствуют обязательные поля');
+    }
+    
+    const amount = this.price > 0 ? this.price : parseFloat(localStorage.getItem('total') || '0');
+    if (isNaN(amount) || amount <= 0) {
+      throw new Error('Неверная сумма');
+    }
+    
+    const requestData = {
+      Test: false,
+      Email: this.email,
+      FirstName: this.FirstName,
+      LastName: this.LastName,
+      Amount: amount,
+      Currency: this.currency,
+      MerchantId: this.merchant || '1',
+      ClientId: String(this.id),
+      BillingID: '1',
+      ReturnUrl: true,
+    };
+    
+    console.log('Данные запроса:', requestData);
+    
+    const response = await axios.post('https://app.0xprocessing.com/Payment', qs.stringify(requestData), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
+    });
+    
+    console.log('Ответ:', response);
+    
+    if (response.data && response.data.redirectUrl) {
+      this.ticking();
+      window.location.href = response.data.redirectUrl;
+    } else {
+      throw new Error('Нет redirectUrl в ответе');
+    }
+  } catch (error) {
+    console.error('Ошибка:', error);
+    if (error.response) {
+      console.error('Статус:', error.response.status);
+      console.error('Данные:', error.response.data);
+    }
+    alert(`Ошибка платежа: ${error.message}`);
+  }
+},
 
+
+    async load_info() {
+      try {
+        let response = await axios.get(`/users/${localStorage.getItem("id")}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        console.log(response);
+        this.email = response.data.user.email;
+        this.FirstName = response.data.user.firstname;  // Изменено
+        this.LastName = response.data.user.lastname;    // Изменено
+        this.id = response.data.user.id;
+      } catch (err) {
+        console.log(err);
+      } finally {
+        this.isLoading = false;
+      }
     },
-  
-    mounted() {
-      // this.fetchValue();
+    async get_merchant() {
+      try {
+        let response = await axios.get(``, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        console.log(response);
+        this.merchant = response.data.merchant; 
+      } catch (err) {
+        console.log(err);
+      } finally {
+        this.isLoading = false;
+      }
     },
-  };
-  </script>
+    closeModal() {
+      this.$emit('update:isModalVisible', false);
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+      }
+      this.time = 30;  // Сброс таймера
+    },
+    next() {
+      this.step++;
+    },
+    ticking() {
+      this.intervalId = setInterval(() => {
+        if (this.time > 0) {
+          this.time--;
+        } else {
+          clearInterval(this.intervalId);
+        }
+      }, 1000);
+    }
+  },
+  // mounted() {
+    
+  // },
+};
+</script>
   
   <style scoped>
   .clock{
