@@ -216,6 +216,22 @@ export default {
         console.error("Error fetching users:", error);
       }
     },
+    async getbankdata() {
+      
+      const url = `users/testmode`;
+      const headers = {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json" 
+      };
+      try {
+        const response = await axios.get(url, { headers });
+        console.log(response.data, 'dattaaaaaaaaaaaaaaaaaaaaa');
+        localStorage.setItem('merchant', response.data.merchant);
+         
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
     async fetchminer() {
   const url = `/miners/get/all`;
   const headers = {
@@ -263,16 +279,46 @@ export default {
     this.showModalPerevod = true;
   }else if (this.methodPay === '0xprocessing'){
     this.showModalOx = true;
+  }else if(this.methodPay === 'btc_pay'){
+    this.createInvoice();
   }
 },
     zxc(val){
       this.methodPay = val;
       
-    }
+    },
+    async createInvoice() {
+  const url = 'billings/create-btcpay-invoice';
+  const headers = {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    "Content-Type": "application/json"
+  };
+
+  // Формируем тело запроса с суммой платежа
+  const data = {
+    amount: this.summary || 1,  // замените this.summary на нужное значение
+  };
+
+  try {
+    const response = await axios.post(url, data, { headers });
+    console.log('Invoice created:', response.data);
+
+    // Можно сохранить данные инвойса в localStorage, если нужно
+    localStorage.setItem('invoiceData', JSON.stringify(response.data));
+
+    // Наприм     ер, открыть ссылку на оплату
+    this.router();
+    window.open(response.data.invoiceUrl, '_blank');
+  } catch (error) {
+    console.error("Error creating invoice:", error);
+  }
+},
+
   },
   mounted() {
     document.body.style.overflow = "auto";
     if(this.summary != 0) return
+    this.getbankdata();
     this.load_info();
   },
 };

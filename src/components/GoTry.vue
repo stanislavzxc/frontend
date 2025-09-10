@@ -9,7 +9,9 @@ export default {
   },
   mounted() {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    document.body.style.overflow = "hidden";
+    setTimeout(() => {
+      document.body.style.overflow = "hidden";
+    }, 1000);
   },
 };
 </script>

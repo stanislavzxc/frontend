@@ -67,7 +67,6 @@ export default {
   methods: {
     async fetchValue() {
   try {
-    await this.get_merchant();
     await this.load_info();
 
     console.log('Инициируем платёж...');
@@ -143,21 +142,7 @@ export default {
         this.isLoading = false;
       }
     },
-    async get_merchant() {
-      try {
-        let response = await axios.get(``, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        console.log(response);
-        this.merchant = response.data.merchant; 
-      } catch (err) {
-        console.log(err);
-      } finally {
-        this.isLoading = false;
-      }
-    },
+    
     closeModal() {
       this.$emit('update:isModalVisible', false);
       if (this.intervalId) {
@@ -179,9 +164,9 @@ export default {
       }, 1000);
     }
   },
-  // mounted() {
-    
-  // },
+   mounted() {
+    this.merchant = localStorage.getItem('merchant') || '1';
+   },
 };
 </script>
   

@@ -8,6 +8,7 @@ export default {
     return {
       cards: [],
       cart: false,
+      token:'',
     };
   },
   methods: {
@@ -51,11 +52,19 @@ export default {
     },
 
     open(id) {
-      this.$router.push({ name: "product", query: { id: id } });
+      if(this.token){
+        this.$router.push({ name: "product", query: { id: id } });
+      }else{
+    window.scrollTo({ top: 0, behavior: "smooth" });
+        
+      }
+    document.body.style.overflow = "scroll";
+
     },
   },
   mounted() {
-    document.body.style.overflow = "auto";
+    // document.body.style.overflow = "auto";
+    this.token = localStorage.getItem('token')
     this.load_info();
   },
 };

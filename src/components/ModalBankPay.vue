@@ -157,10 +157,9 @@ export default {
     },
   },
   methods: {
-    async pay() {
-      if (!this.card_number || !this.card_mounth || !this.card_year || !this.card_code || !this.card_udo) {
+  async pay() {
+    if (!this.card_number || !this.card_mounth || !this.card_year || !this.card_code || !this.card_udo) {
       let message;
-      // Определяем сообщение в зависимости от текущего языка
       switch (this.lang) {
         case 'RU':
           message = "Заполните все данные!";
@@ -172,48 +171,58 @@ export default {
           message = "Please fill in all the details!";
           break;
         default:
-          message = "Please fill in all the details!"; // Сообщение по умолчанию
+          message = "Please fill in all the details!";
       }
       alert(message);
-      return; // Прекращаем выполнение метода, если поля не заполнены
+      return;
     }
-    
-      this.isLoading = true;
-    // Пример данных для отправки
-    const paymentData = {
-      card_number: this.card_number,
-      card_month: this.card_mounth,
-      card_year: this.card_year,
-      card_code: this.card_code,
-      card_udo: this.card_udo,
+
+    this.isLoading = true;
+
+    // Формируем данные для запроса к вашему FastAPI
+    const paymentRequest = {
       amount: this.price,
-      currency: 'RUB', // или ваша валюта
-      description: `Оплата заказа на сумму ${this.price}`,
-      // добавьте другие необходимые параметры
+      currency: 'ILS', // или ваша валюта
+      client_name: 'Client Name', // замените на реальные данные клиента
+      client_contact_person: 'Contact Person',
+      client_id: '12345',
+      client_email: 'client@example.com',
+      client_phone_country_code: '972',
+      client_phone_area_code: '054',
+      client_phone_number: '1234567',
     };
 
     try {
-      // Отправляем данные на ваш сервер
-      const response = await axios.post('/api/payment/create', paymentData, {
+      // Отправляем запрос на ваш backend
+      const response = await axios.post('billings//create-tranzila-payment-request', paymentRequest, {
         headers: {
-          Authorization: `Bearer ${this.key}`, // если нужен токен
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
+          
         },
       });
+
       this.step = 2;
-      if (response.data.status === 'success') {
-        this.isLoading = false;
-      } else {
-        this.isLoading = false;
-        this.pay_state = false;
-      }
+      this.isLoading = false;
+      this.pay_state = true;
+      this.$emit("buy");
+
+      // Можно сохранить ссылку на оплату и id платежа, если нужно
+      console.log('Payment request created:', response.data.pr_link, response.data.pr_id);
+
+      // Например, можно открыть ссылку в новой вкладке
+      window.open(response.data.pr_link, '_blank');
+
     } catch (error) {
-      console.error('Ошибка при оплате:', error);
+      console.error('Ошибка при создании платежа:', error);
       this.isLoading = false;
       this.pay_state = false;
       this.next();
     }
   },
+  // остальные методы...
+
+
     async getkey() {
     try {
       // Отправляем данные на ваш сервер
